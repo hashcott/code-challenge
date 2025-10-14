@@ -3,6 +3,8 @@ import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import jwt from '@fastify/jwt';
 import websocket from '@fastify/websocket';
+import swagger from '@fastify/swagger';
+import swaggerUi from '@fastify/swagger-ui';
 // Removed @fastify/rate-limit - using custom cache-based rate limiting instead
 import staticFiles from '@fastify/static';
 import path from 'path';
@@ -13,6 +15,7 @@ import { WebSocketService } from './services/WebSocketService';
 import { cacheService } from './services/CacheService';
 import { authenticateToken } from './middleware/auth';
 import { rateLimiters } from './middleware/rateLimit';
+import { swaggerConfig, swaggerUiConfig } from './config/swagger';
 
 const fastify = Fastify({
   logger: {
@@ -33,13 +36,65 @@ async function build() {
 
   await fastify.register(websocket);
 
+  // Register Swagger
+  await fastify.register(swagger, {
+    openapi: swaggerConfig as any
+  });
+  await fastify.register(swaggerUi, swaggerUiConfig);
+
   await fastify.register(staticFiles, {
     root: path.join(__dirname, '../public'),
     prefix: '/'
   });
 
 // Health check endpoint
-fastify.get('/health', async (request, reply) => {
+fastify.get('/health', {
+  schema: {
+    tags: ['System'],
+    summary: 'Health check endpoint',
+    description: 'Returns system health status including cache and WebSocket connections',
+    response: {
+      200: {
+        type: 'object',
+        description: 'System health status',
+        properties: {
+          status: {
+            type: 'string',
+            enum: ['ok', 'error'],
+            description: 'System health status'
+          },
+          timestamp: {
+            type: 'string',
+            format: 'date-time',
+            description: 'Health check timestamp'
+          },
+          websocketConnections: {
+            type: 'integer',
+            description: 'Number of active WebSocket connections'
+          },
+          cache: {
+            type: 'object',
+            properties: {
+              redis: {
+                type: 'string',
+                enum: ['connected', 'disconnected'],
+                description: 'Redis connection status'
+              },
+              hitRate: {
+                type: 'number',
+                description: 'Cache hit rate percentage'
+              },
+              memoryUsage: {
+                type: 'string',
+                description: 'Redis memory usage'
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}, async (request, reply) => {
   const cacheStats = await cacheService.getCacheStats();
   return {
     status: 'ok',
@@ -54,7 +109,39 @@ fastify.get('/health', async (request, reply) => {
 });
 
 // Cache management endpoints with rate limiting
-fastify.get('/api/cache/stats', { preHandler: [authenticateToken, rateLimiters.cacheManagement] }, async (request, reply) => {
+fastify.get('/api/cache/stats', {
+  preHandler: [authenticateToken, rateLimiters.cacheManagement],
+  schema: {
+    tags: ['System'],
+    summary: 'Get cache statistics',
+    description: 'Returns detailed cache statistics including Redis status and performance metrics',
+    security: [{ bearerAuth: [] }],
+    response: {
+      200: {
+        type: 'object',
+        description: 'Cache statistics',
+        properties: {
+          success: { type: 'boolean', example: true },
+          data: {
+            type: 'object',
+            properties: {
+              redis: {
+                type: 'object',
+                properties: {
+                  status: { type: 'string', enum: ['connected', 'disconnected'] },
+                  hitRate: { type: 'number' },
+                  memoryUsage: { type: 'string' }
+                }
+              }
+            }
+          }
+        }
+      },
+      401: { $ref: '#/components/schemas/ErrorResponse' },
+      429: { $ref: '#/components/schemas/ErrorResponse' }
+    }
+  }
+}, async (request, reply) => {
   const stats = await cacheService.getCacheStats();
   return {
     success: true,
@@ -62,7 +149,34 @@ fastify.get('/api/cache/stats', { preHandler: [authenticateToken, rateLimiters.c
   };
 });
 
-fastify.post('/api/cache/warm', { preHandler: [authenticateToken, rateLimiters.cacheManagement] }, async (request, reply) => {
+fastify.post('/api/cache/warm', {
+  preHandler: [authenticateToken, rateLimiters.cacheManagement],
+  schema: {
+    tags: ['System'],
+    summary: 'Warm cache',
+    description: 'Pre-populate cache with frequently accessed data',
+    security: [{ bearerAuth: [] }],
+    response: {
+      200: {
+        type: 'object',
+        description: 'Cache warming result',
+        properties: {
+          success: { type: 'boolean', example: true },
+          data: {
+            type: 'object',
+            properties: {
+              message: { type: 'string', example: 'Cache warmed successfully' },
+              itemsCached: { type: 'integer' },
+              duration: { type: 'string' }
+            }
+          }
+        }
+      },
+      401: { $ref: '#/components/schemas/ErrorResponse' },
+      429: { $ref: '#/components/schemas/ErrorResponse' }
+    }
+  }
+}, async (request, reply) => {
   const result = await cacheService.warmCache();
   return {
     success: true,
@@ -74,7 +188,33 @@ fastify.post('/api/cache/warm', { preHandler: [authenticateToken, rateLimiters.c
   };
 });
 
-fastify.delete('/api/cache/clear', { preHandler: [authenticateToken, rateLimiters.cacheManagement] }, async (request, reply) => {
+fastify.delete('/api/cache/clear', {
+  preHandler: [authenticateToken, rateLimiters.cacheManagement],
+  schema: {
+    tags: ['System'],
+    summary: 'Clear cache',
+    description: 'Invalidate all cached data',
+    security: [{ bearerAuth: [] }],
+    response: {
+      200: {
+        type: 'object',
+        description: 'Cache clearing result',
+        properties: {
+          success: { type: 'boolean', example: true },
+          data: {
+            type: 'object',
+            properties: {
+              message: { type: 'string', example: 'Cache cleared successfully' },
+              keysDeleted: { type: 'string', example: 'all' }
+            }
+          }
+        }
+      },
+      401: { $ref: '#/components/schemas/ErrorResponse' },
+      429: { $ref: '#/components/schemas/ErrorResponse' }
+    }
+  }
+}, async (request, reply) => {
   await cacheService.invalidateAll();
   return {
     success: true,
@@ -86,39 +226,155 @@ fastify.delete('/api/cache/clear', { preHandler: [authenticateToken, rateLimiter
 });
 
   // Auth routes without rate limiting
-  fastify.post('/api/auth/register', async (request, reply) => {
+  fastify.post('/api/auth/register', {
+    schema: {
+      tags: ['Authentication'],
+      summary: 'Register new user',
+      description: 'Create a new user account with username, email and password',
+      body: { $ref: '#/components/schemas/RegisterRequest' },
+      response: {
+        201: { $ref: '#/components/schemas/AuthResponse' },
+        400: { $ref: '#/components/schemas/ErrorResponse' },
+        409: { $ref: '#/components/schemas/ErrorResponse' }
+      }
+    }
+  }, async (request, reply) => {
     return await AuthController.register(request as any, reply);
   });
-  fastify.post('/api/auth/login', async (request, reply) => {
+  
+  fastify.post('/api/auth/login', {
+    schema: {
+      tags: ['Authentication'],
+      summary: 'User login',
+      description: 'Authenticate user with email and password',
+      body: { $ref: '#/components/schemas/AuthRequest' },
+      response: {
+        200: { $ref: '#/components/schemas/AuthResponse' },
+        400: { $ref: '#/components/schemas/ErrorResponse' },
+        401: { $ref: '#/components/schemas/ErrorResponse' }
+      }
+    }
+  }, async (request, reply) => {
     return await AuthController.login(request as any, reply);
   });
 
   // Public scoreboard route
-  fastify.get('/api/scoreboard', ScoreboardController.getScoreboard);
+  fastify.get('/api/scoreboard', {
+    schema: {
+      tags: ['Scoreboard'],
+      summary: 'Get scoreboard',
+      description: 'Get top 10 users with highest scores (public endpoint)',
+      response: {
+        200: { $ref: '#/components/schemas/Scoreboard' },
+        500: { $ref: '#/components/schemas/ErrorResponse' }
+      }
+    }
+  }, ScoreboardController.getScoreboard);
 
   // Protected scoreboard routes with rate limiting
   fastify.post('/api/scoreboard/update', {
-    preHandler: [authenticateToken, rateLimiters.scoreUpdate]
+    preHandler: [authenticateToken, rateLimiters.scoreUpdate],
+    schema: {
+      tags: ['Scoreboard'],
+      summary: 'Update user score',
+      description: 'Update user score with action hash verification for security',
+      security: [{ bearerAuth: [] }],
+      body: { $ref: '#/components/schemas/ScoreUpdateRequest' },
+      response: {
+        200: { $ref: '#/components/schemas/SuccessResponse' },
+        400: { $ref: '#/components/schemas/ErrorResponse' },
+        401: { $ref: '#/components/schemas/ErrorResponse' },
+        429: { $ref: '#/components/schemas/ErrorResponse' }
+      }
+    }
   }, async (request, reply) => {
     return await ScoreboardController.updateScore(request as any, reply);
   });
 
   fastify.get('/api/scoreboard/user/:userId', {
-    preHandler: [authenticateToken, rateLimiters.general]
+    preHandler: [authenticateToken, rateLimiters.general],
+    schema: {
+      tags: ['Scoreboard'],
+      summary: 'Get user score',
+      description: 'Get specific user score by user ID',
+      security: [{ bearerAuth: [] }],
+      params: {
+        type: 'object',
+        properties: {
+          userId: {
+            type: 'string',
+            format: 'uuid',
+            description: 'User ID'
+          }
+        },
+        required: ['userId']
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean', example: true },
+            data: {
+              type: 'object',
+              properties: {
+                user: { $ref: '#/components/schemas/User' },
+                rank: { type: 'integer', description: 'User rank in scoreboard' }
+              }
+            }
+          }
+        },
+        401: { $ref: '#/components/schemas/ErrorResponse' },
+        404: { $ref: '#/components/schemas/ErrorResponse' },
+        429: { $ref: '#/components/schemas/ErrorResponse' }
+      }
+    }
   }, async (request, reply) => {
     return await ScoreboardController.getUserScore(request as any, reply);
   });
 
   // Generate action data (for frontend)
   fastify.post('/api/scoreboard/generate-action', {
-    preHandler: [authenticateToken, rateLimiters.general]
+    preHandler: [authenticateToken, rateLimiters.general],
+    schema: {
+      tags: ['Scoreboard'],
+      summary: 'Generate action data',
+      description: 'Generate action hash and data for secure score updates',
+      security: [{ bearerAuth: [] }],
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean', example: true },
+            data: { $ref: '#/components/schemas/ActionData' }
+          }
+        },
+        401: { $ref: '#/components/schemas/ErrorResponse' },
+        429: { $ref: '#/components/schemas/ErrorResponse' }
+      }
+    }
   }, async (request, reply) => {
     return await ScoreboardController.generateActionData(request as any, reply);
   });
 
   // WebSocket endpoint
   fastify.register(async function (fastify) {
-    fastify.get('/ws', { websocket: true }, (connection, req) => {
+    fastify.get('/ws', {
+      websocket: true,
+      schema: {
+        tags: ['WebSocket'],
+        summary: 'WebSocket connection',
+        description: 'Real-time WebSocket connection for live scoreboard updates',
+        response: {
+          101: {
+            description: 'WebSocket connection established',
+            headers: {
+              Upgrade: { type: 'string', example: 'websocket' },
+              Connection: { type: 'string', example: 'Upgrade' }
+            }
+          }
+        }
+      }
+    }, (connection, req) => {
       const connectionId = `conn_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       
       WebSocketService.addConnection(connectionId, connection.socket);
