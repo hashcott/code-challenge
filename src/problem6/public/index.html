@@ -708,7 +708,11 @@
                 existingMessages.forEach(el => {
                     // Only remove messages that are not user info
                     if (!el.id || el.id !== 'userInfo') {
-                        el.remove();
+                        // Check if this element is inside userInfo div
+                        const userInfoDiv = el.closest('#userInfo');
+                        if (!userInfoDiv) {
+                            el.remove();
+                        }
                     }
                 });
 
@@ -733,7 +737,11 @@
                 existingMessages.forEach(el => {
                     // Only remove messages that are not user info
                     if (!el.id || el.id !== 'userInfo') {
-                        el.remove();
+                        // Check if this element is inside userInfo div
+                        const userInfoDiv = el.closest('#userInfo');
+                        if (!userInfoDiv) {
+                            el.remove();
+                        }
                     }
                 });
 
@@ -816,7 +824,11 @@
                 existingMessages.forEach(el => {
                     // Only remove messages that are not user info
                     if (!el.id || el.id !== 'userInfo') {
-                        el.remove();
+                        // Check if this element is inside userInfo div
+                        const userInfoDiv = el.closest('#userInfo');
+                        if (!userInfoDiv) {
+                            el.remove();
+                        }
                     }
                 });
 
