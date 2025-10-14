@@ -703,9 +703,14 @@
             }
 
             showMessage(message, type) {
-                // Remove existing messages
+                // Remove existing temporary messages (but not user info)
                 const existingMessages = document.querySelectorAll('.error, .success');
-                existingMessages.forEach(el => el.remove());
+                existingMessages.forEach(el => {
+                    // Only remove messages that are not user info
+                    if (!el.id || el.id !== 'userInfo') {
+                        el.remove();
+                    }
+                });
 
                 // Create new message
                 const messageEl = document.createElement('div');
@@ -723,9 +728,14 @@
             }
 
             showBackendError(title, error, statusCode) {
-                // Remove existing messages
+                // Remove existing temporary messages (but not user info)
                 const existingMessages = document.querySelectorAll('.error, .success');
-                existingMessages.forEach(el => el.remove());
+                existingMessages.forEach(el => {
+                    // Only remove messages that are not user info
+                    if (!el.id || el.id !== 'userInfo') {
+                        el.remove();
+                    }
+                });
 
                 // Handle different error structures
                 let errorMessage = 'An unknown error occurred';
@@ -801,9 +811,14 @@
             }
 
             showNetworkError(title, error) {
-                // Remove existing messages
+                // Remove existing temporary messages (but not user info)
                 const existingMessages = document.querySelectorAll('.error, .success');
-                existingMessages.forEach(el => el.remove());
+                existingMessages.forEach(el => {
+                    // Only remove messages that are not user info
+                    if (!el.id || el.id !== 'userInfo') {
+                        el.remove();
+                    }
+                });
 
                 // Create network error message
                 const errorEl = document.createElement('div');
