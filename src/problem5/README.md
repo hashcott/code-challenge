@@ -2,6 +2,16 @@
 
 A comprehensive backend server built with ExpressJS 5.x, TypeScript 5.x, and SQLite database. This API provides full CRUD functionality for user management with OpenAPI Swagger documentation.
 
+## 🌐 Live Demo
+
+**🚀 [Live Demo on Render](https://code-challenge-goup.onrender.com)**
+
+### Quick Test Endpoints:
+- **Health Check**: [https://code-challenge-goup.onrender.com/health](https://code-challenge-goup.onrender.com/health)
+- **API Info**: [https://code-challenge-goup.onrender.com/](https://code-challenge-goup.onrender.com/)
+- **Users API**: [https://code-challenge-goup.onrender.com/api/users](https://code-challenge-goup.onrender.com/api/users)
+- **API Documentation**: [https://code-challenge-goup.onrender.com/api-docs](https://code-challenge-goup.onrender.com/api-docs)
+
 ## 🚀 Technologies Used
 
 - **Express 5.x** - Modern web framework
@@ -115,9 +125,13 @@ CREATE TABLE users (
 
 ## 🔧 API Usage Examples
 
+### 🌐 Live Demo Testing
+
+Test the live API at [https://code-challenge-goup.onrender.com](https://code-challenge-goup.onrender.com):
+
 ### 1. Create New User
 ```bash
-curl -X POST http://localhost:3000/api/users \
+curl -X POST https://code-challenge-goup.onrender.com/api/users \
   -H "Content-Type: application/json" \
   -d '{
     "name": "John Doe",
@@ -129,29 +143,29 @@ curl -X POST http://localhost:3000/api/users \
 ### 2. Get Users List
 ```bash
 # Get all users
-curl http://localhost:3000/api/users
+curl https://code-challenge-goup.onrender.com/api/users
 
 # Filter by name
-curl "http://localhost:3000/api/users?name=John"
+curl "https://code-challenge-goup.onrender.com/api/users?name=John"
 
 # Filter by email
-curl "http://localhost:3000/api/users?email=john"
+curl "https://code-challenge-goup.onrender.com/api/users?email=john"
 
 # Filter by age
-curl "http://localhost:3000/api/users?age=30"
+curl "https://code-challenge-goup.onrender.com/api/users?age=30"
 
 # Pagination
-curl "http://localhost:3000/api/users?limit=10&offset=0"
+curl "https://code-challenge-goup.onrender.com/api/users?limit=10&offset=0"
 ```
 
 ### 3. Get User by ID
 ```bash
-curl http://localhost:3000/api/users/1
+curl https://code-challenge-goup.onrender.com/api/users/1
 ```
 
 ### 4. Update User
 ```bash
-curl -X PUT http://localhost:3000/api/users/1 \
+curl -X PUT https://code-challenge-goup.onrender.com/api/users/1 \
   -H "Content-Type: application/json" \
   -d '{
     "name": "John Smith",
@@ -161,8 +175,12 @@ curl -X PUT http://localhost:3000/api/users/1 \
 
 ### 5. Delete User
 ```bash
-curl -X DELETE http://localhost:3000/api/users/1
+curl -X DELETE https://code-challenge-goup.onrender.com/api/users/1
 ```
+
+### 🏠 Local Development
+
+For local development, replace the base URL with `http://localhost:3000`:
 
 ### 6. Database Performance Monitoring
 ```bash
@@ -215,6 +233,14 @@ tests/
 
 ## 🌐 Server Information
 
+### 🚀 Live Production (Render)
+- **Base URL**: https://code-challenge-goup.onrender.com
+- **Health Check**: https://code-challenge-goup.onrender.com/health
+- **API Base**: https://code-challenge-goup.onrender.com/api/users
+- **Admin API**: https://code-challenge-goup.onrender.com/api/admin
+- **API Documentation**: https://code-challenge-goup.onrender.com/api-docs
+
+### 🏠 Local Development
 - **Port**: 3000 (configurable via PORT environment variable)
 - **Health Check**: http://localhost:3000/health
 - **API Base**: http://localhost:3000/api/users
@@ -260,7 +286,13 @@ The documentation includes:
 
 ## 🧪 Testing the API
 
-### Manual Testing
+### 🌐 Live Demo Testing
+1. **Interactive Documentation**: [https://code-challenge-goup.onrender.com/api-docs](https://code-challenge-goup.onrender.com/api-docs)
+2. **Health Check**: [https://code-challenge-goup.onrender.com/health](https://code-challenge-goup.onrender.com/health)
+3. **Quick Test**: [https://code-challenge-goup.onrender.com/api/users](https://code-challenge-goup.onrender.com/api/users)
+4. Use curl commands as shown in the examples above
+
+### 🏠 Local Development Testing
 1. Start the server: `npm run dev`
 2. Open browser: http://localhost:3000/api-docs
 3. Use the interactive Swagger UI to test endpoints
