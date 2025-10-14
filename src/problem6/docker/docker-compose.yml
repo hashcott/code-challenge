@@ -1,0 +1,77 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: scoreboard-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: scoreboard_dev
+      POSTGRES_USER: scoreboard_user
+      POSTGRES_PASSWORD: scoreboard_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - scoreboard-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U scoreboard_user -d scoreboard_dev"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: scoreboard-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - scoreboard-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Scoreboard API Application
+  app:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: scoreboard-api
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://scoreboard_user:scoreboard_password@postgres:5432/scoreboard_dev
+      JWT_SECRET: dev-jwt-secret-key
+      PORT: 3000
+      HOST: 0.0.0.0
+      REDIS_URL: redis://redis:6379
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - scoreboard-network
+    volumes:
+      - ..:/app
+      - /app/node_modules
+      - /app/dist
+    command: npm run dev
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  scoreboard-network:
+    driver: bridge
