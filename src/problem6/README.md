@@ -8,6 +8,7 @@ A real-time scoreboard system with live updates and security measures to prevent
 
 ### Quick Test Endpoints:
 - **Health Check**: [https://scoreboard-system-mvp.onrender.com/health](https://scoreboard-system-mvp.onrender.com/health)
+- **API Documentation**: [https://scoreboard-system-mvp.onrender.com/docs](https://scoreboard-system-mvp.onrender.com/docs)
 - **API Info**: [https://scoreboard-system-mvp.onrender.com/](https://scoreboard-system-mvp.onrender.com/)
 - **Scoreboard API**: [https://scoreboard-system-mvp.onrender.com/api/scoreboard](https://scoreboard-system-mvp.onrender.com/api/scoreboard)
 - **WebSocket**: [wss://scoreboard-system-mvp.onrender.com/ws](wss://scoreboard-system-mvp.onrender.com/ws)
@@ -47,6 +48,7 @@ npm run dev
 ## 📚 Documentation
 
 - **[API Specification](docs/API_SPECIFICATION.md)** - Complete API endpoints and database schema
+- **[OpenAPI Documentation](docs/OPENAPI.md)** - Interactive API documentation with Swagger UI
 - **[Flow Diagrams](docs/FLOW_DIAGRAM.md)** - System architecture and execution flows
 - **[Implementation Guide](docs/IMPLEMENTATION.md)** - Setup and development instructions
 - **[Docker Setup](docker/README.md)** - Containerized development environment
