@@ -2,6 +2,16 @@
 
 A real-time scoreboard system with live updates and security measures to prevent unauthorized score manipulation.
 
+## 🌐 Live Demo
+
+**🚀 [Live Demo on Render](https://scoreboard-system-mvp.onrender.com)**
+
+### Quick Test Endpoints:
+- **Health Check**: [https://scoreboard-system-mvp.onrender.com/health](https://scoreboard-system-mvp.onrender.com/health)
+- **API Info**: [https://scoreboard-system-mvp.onrender.com/](https://scoreboard-system-mvp.onrender.com/)
+- **Scoreboard API**: [https://scoreboard-system-mvp.onrender.com/api/scoreboard](https://scoreboard-system-mvp.onrender.com/api/scoreboard)
+- **WebSocket**: [wss://scoreboard-system-mvp.onrender.com/ws](wss://scoreboard-system-mvp.onrender.com/ws)
+
 ## 📋 Requirements
 
 - **Scoreboard**: Display top 10 users with highest scores
@@ -104,7 +114,31 @@ ws.onmessage = (event) => {
 
 ## 🧪 Testing
 
-Test the API endpoints:
+### 🌐 Live Demo Testing
+
+Test the live API at [https://scoreboard-system-mvp.onrender.com](https://scoreboard-system-mvp.onrender.com):
+
+```bash
+# Health check
+curl https://scoreboard-system-mvp.onrender.com/health
+
+# Register user
+curl -X POST https://scoreboard-system-mvp.onrender.com/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"username": "testuser", "email": "test@example.com", "password": "password123"}'
+
+# Get scoreboard
+curl https://scoreboard-system-mvp.onrender.com/api/scoreboard
+
+# Login
+curl -X POST https://scoreboard-system-mvp.onrender.com/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "test@example.com", "password": "password123"}'
+```
+
+### 🏠 Local Development
+
+For local development, replace the base URL with `http://localhost:3000`:
 
 ```bash
 # Health check

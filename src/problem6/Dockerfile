@@ -23,6 +23,9 @@ RUN npm run build
 # Production stage
 FROM node:18-alpine AS production
 
+# Install OpenSSL for Prisma
+RUN apk add --no-cache openssl
+
 # Set working directory
 WORKDIR /app
 
@@ -36,6 +39,9 @@ RUN npm ci --only=production && npm cache clean --force
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/prisma ./prisma
+
+# Regenerate Prisma client for production environment
+RUN npx prisma generate
 
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs && \
