@@ -137,8 +137,32 @@ fastify.get('/api/cache/stats', {
           }
         }
       },
-      401: { $ref: '#/components/schemas/ErrorResponse' },
-      429: { $ref: '#/components/schemas/ErrorResponse' }
+      401: {
+        type: 'object',
+        properties: {
+          success: { type: 'boolean', example: false },
+          error: {
+            type: 'object',
+            properties: {
+              code: { type: 'string' },
+              message: { type: 'string' }
+            }
+          }
+        }
+      },
+      429: {
+        type: 'object',
+        properties: {
+          success: { type: 'boolean', example: false },
+          error: {
+            type: 'object',
+            properties: {
+              code: { type: 'string' },
+              message: { type: 'string' }
+            }
+          }
+        }
+      }
     }
   }
 }, async (request, reply) => {
@@ -172,8 +196,32 @@ fastify.post('/api/cache/warm', {
           }
         }
       },
-      401: { $ref: '#/components/schemas/ErrorResponse' },
-      429: { $ref: '#/components/schemas/ErrorResponse' }
+      401: {
+        type: 'object',
+        properties: {
+          success: { type: 'boolean', example: false },
+          error: {
+            type: 'object',
+            properties: {
+              code: { type: 'string' },
+              message: { type: 'string' }
+            }
+          }
+        }
+      },
+      429: {
+        type: 'object',
+        properties: {
+          success: { type: 'boolean', example: false },
+          error: {
+            type: 'object',
+            properties: {
+              code: { type: 'string' },
+              message: { type: 'string' }
+            }
+          }
+        }
+      }
     }
   }
 }, async (request, reply) => {
@@ -210,8 +258,32 @@ fastify.delete('/api/cache/clear', {
           }
         }
       },
-      401: { $ref: '#/components/schemas/ErrorResponse' },
-      429: { $ref: '#/components/schemas/ErrorResponse' }
+      401: {
+        type: 'object',
+        properties: {
+          success: { type: 'boolean', example: false },
+          error: {
+            type: 'object',
+            properties: {
+              code: { type: 'string' },
+              message: { type: 'string' }
+            }
+          }
+        }
+      },
+      429: {
+        type: 'object',
+        properties: {
+          success: { type: 'boolean', example: false },
+          error: {
+            type: 'object',
+            properties: {
+              code: { type: 'string' },
+              message: { type: 'string' }
+            }
+          }
+        }
+      }
     }
   }
 }, async (request, reply) => {
@@ -231,11 +303,78 @@ fastify.delete('/api/cache/clear', {
       tags: ['Authentication'],
       summary: 'Register new user',
       description: 'Create a new user account with username, email and password',
-      body: { $ref: '#/components/schemas/RegisterRequest' },
+      body: {
+        type: 'object',
+        required: ['username', 'email', 'password'],
+        properties: {
+          username: {
+            type: 'string',
+            minLength: 3,
+            maxLength: 50,
+            description: 'User display name'
+          },
+          email: {
+            type: 'string',
+            format: 'email',
+            description: 'User email address'
+          },
+          password: {
+            type: 'string',
+            minLength: 6,
+            description: 'User password'
+          }
+        }
+      },
       response: {
-        201: { $ref: '#/components/schemas/AuthResponse' },
-        400: { $ref: '#/components/schemas/ErrorResponse' },
-        409: { $ref: '#/components/schemas/ErrorResponse' }
+        201: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            data: {
+              type: 'object',
+              properties: {
+                token: { type: 'string' },
+                user: {
+                  type: 'object',
+                  properties: {
+                    id: { type: 'string', format: 'uuid' },
+                    username: { type: 'string' },
+                    email: { type: 'string', format: 'email' },
+                    score: { type: 'integer', minimum: 0 },
+                    createdAt: { type: 'string', format: 'date-time' },
+                    updatedAt: { type: 'string', format: 'date-time' }
+                  }
+                }
+              }
+            }
+          }
+        },
+        400: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean', example: false },
+            error: {
+              type: 'object',
+              properties: {
+                code: { type: 'string' },
+                message: { type: 'string' }
+              }
+            }
+          }
+        },
+        409: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean', example: false },
+            error: {
+              type: 'object',
+              properties: {
+                code: { type: 'string' },
+                message: { type: 'string' }
+              }
+            }
+          }
+        }
       }
     }
   }, async (request, reply) => {
@@ -247,11 +386,72 @@ fastify.delete('/api/cache/clear', {
       tags: ['Authentication'],
       summary: 'User login',
       description: 'Authenticate user with email and password',
-      body: { $ref: '#/components/schemas/AuthRequest' },
+      body: {
+        type: 'object',
+        required: ['email', 'password'],
+        properties: {
+          email: {
+            type: 'string',
+            format: 'email',
+            description: 'User email address'
+          },
+          password: {
+            type: 'string',
+            minLength: 6,
+            description: 'User password'
+          }
+        }
+      },
       response: {
-        200: { $ref: '#/components/schemas/AuthResponse' },
-        400: { $ref: '#/components/schemas/ErrorResponse' },
-        401: { $ref: '#/components/schemas/ErrorResponse' }
+        200: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            data: {
+              type: 'object',
+              properties: {
+                token: { type: 'string' },
+                user: {
+                  type: 'object',
+                  properties: {
+                    id: { type: 'string', format: 'uuid' },
+                    username: { type: 'string' },
+                    email: { type: 'string', format: 'email' },
+                    score: { type: 'integer', minimum: 0 },
+                    createdAt: { type: 'string', format: 'date-time' },
+                    updatedAt: { type: 'string', format: 'date-time' }
+                  }
+                }
+              }
+            }
+          }
+        },
+        400: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean', example: false },
+            error: {
+              type: 'object',
+              properties: {
+                code: { type: 'string' },
+                message: { type: 'string' }
+              }
+            }
+          }
+        },
+        401: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean', example: false },
+            error: {
+              type: 'object',
+              properties: {
+                code: { type: 'string' },
+                message: { type: 'string' }
+              }
+            }
+          }
+        }
       }
     }
   }, async (request, reply) => {
@@ -265,8 +465,46 @@ fastify.delete('/api/cache/clear', {
       summary: 'Get scoreboard',
       description: 'Get top 10 users with highest scores (public endpoint)',
       response: {
-        200: { $ref: '#/components/schemas/Scoreboard' },
-        500: { $ref: '#/components/schemas/ErrorResponse' }
+        200: {
+          type: 'object',
+          properties: {
+            scoreboard: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  rank: { type: 'integer', minimum: 1 },
+                  user: {
+                    type: 'object',
+                    properties: {
+                      id: { type: 'string', format: 'uuid' },
+                      username: { type: 'string' },
+                      email: { type: 'string', format: 'email' },
+                      score: { type: 'integer', minimum: 0 },
+                      createdAt: { type: 'string', format: 'date-time' },
+                      updatedAt: { type: 'string', format: 'date-time' }
+                    }
+                  }
+                }
+              }
+            },
+            totalUsers: { type: 'integer' },
+            lastUpdated: { type: 'string', format: 'date-time' }
+          }
+        },
+        500: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean', example: false },
+            error: {
+              type: 'object',
+              properties: {
+                code: { type: 'string' },
+                message: { type: 'string' }
+              }
+            }
+          }
+        }
       }
     }
   }, ScoreboardController.getScoreboard);
@@ -279,12 +517,68 @@ fastify.delete('/api/cache/clear', {
       summary: 'Update user score',
       description: 'Update user score with action hash verification for security',
       security: [{ bearerAuth: [] }],
-      body: { $ref: '#/components/schemas/ScoreUpdateRequest' },
+      body: {
+        type: 'object',
+        required: ['actionHash', 'score'],
+        properties: {
+          actionHash: {
+            type: 'string',
+            description: 'Hash of the action to prevent tampering'
+          },
+          score: {
+            type: 'integer',
+            minimum: 0,
+            description: 'New score value'
+          }
+        }
+      },
       response: {
-        200: { $ref: '#/components/schemas/SuccessResponse' },
-        400: { $ref: '#/components/schemas/ErrorResponse' },
-        401: { $ref: '#/components/schemas/ErrorResponse' },
-        429: { $ref: '#/components/schemas/ErrorResponse' }
+        200: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean', example: true },
+            data: { type: 'object' }
+          }
+        },
+        400: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean', example: false },
+            error: {
+              type: 'object',
+              properties: {
+                code: { type: 'string' },
+                message: { type: 'string' }
+              }
+            }
+          }
+        },
+        401: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean', example: false },
+            error: {
+              type: 'object',
+              properties: {
+                code: { type: 'string' },
+                message: { type: 'string' }
+              }
+            }
+          }
+        },
+        429: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean', example: false },
+            error: {
+              type: 'object',
+              properties: {
+                code: { type: 'string' },
+                message: { type: 'string' }
+              }
+            }
+          }
+        }
       }
     }
   }, async (request, reply) => {
@@ -317,15 +611,61 @@ fastify.delete('/api/cache/clear', {
             data: {
               type: 'object',
               properties: {
-                user: { $ref: '#/components/schemas/User' },
+                user: {
+                  type: 'object',
+                  properties: {
+                    id: { type: 'string', format: 'uuid' },
+                    username: { type: 'string' },
+                    email: { type: 'string', format: 'email' },
+                    score: { type: 'integer', minimum: 0 },
+                    createdAt: { type: 'string', format: 'date-time' },
+                    updatedAt: { type: 'string', format: 'date-time' }
+                  }
+                },
                 rank: { type: 'integer', description: 'User rank in scoreboard' }
               }
             }
           }
         },
-        401: { $ref: '#/components/schemas/ErrorResponse' },
-        404: { $ref: '#/components/schemas/ErrorResponse' },
-        429: { $ref: '#/components/schemas/ErrorResponse' }
+        401: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean', example: false },
+            error: {
+              type: 'object',
+              properties: {
+                code: { type: 'string' },
+                message: { type: 'string' }
+              }
+            }
+          }
+        },
+        404: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean', example: false },
+            error: {
+              type: 'object',
+              properties: {
+                code: { type: 'string' },
+                message: { type: 'string' }
+              }
+            }
+          }
+        },
+        429: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean', example: false },
+            error: {
+              type: 'object',
+              properties: {
+                code: { type: 'string' },
+                message: { type: 'string' }
+              }
+            }
+          }
+        }
       }
     }
   }, async (request, reply) => {
@@ -345,11 +685,43 @@ fastify.delete('/api/cache/clear', {
           type: 'object',
           properties: {
             success: { type: 'boolean', example: true },
-            data: { $ref: '#/components/schemas/ActionData' }
+            data: {
+              type: 'object',
+              properties: {
+                actionId: { type: 'string' },
+                actionHash: { type: 'string' },
+                timestamp: { type: 'string', format: 'date-time' },
+                expiresAt: { type: 'string', format: 'date-time' }
+              }
+            }
           }
         },
-        401: { $ref: '#/components/schemas/ErrorResponse' },
-        429: { $ref: '#/components/schemas/ErrorResponse' }
+        401: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean', example: false },
+            error: {
+              type: 'object',
+              properties: {
+                code: { type: 'string' },
+                message: { type: 'string' }
+              }
+            }
+          }
+        },
+        429: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean', example: false },
+            error: {
+              type: 'object',
+              properties: {
+                code: { type: 'string' },
+                message: { type: 'string' }
+              }
+            }
+          }
+        }
       }
     }
   }, async (request, reply) => {
@@ -359,21 +731,7 @@ fastify.delete('/api/cache/clear', {
   // WebSocket endpoint
   fastify.register(async function (fastify) {
     fastify.get('/ws', {
-      websocket: true,
-      schema: {
-        tags: ['WebSocket'],
-        summary: 'WebSocket connection',
-        description: 'Real-time WebSocket connection for live scoreboard updates',
-        response: {
-          101: {
-            description: 'WebSocket connection established',
-            headers: {
-              Upgrade: { type: 'string', example: 'websocket' },
-              Connection: { type: 'string', example: 'Upgrade' }
-            }
-          }
-        }
-      }
+      websocket: true
     }, (connection, req) => {
       const connectionId = `conn_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       
@@ -443,6 +801,7 @@ async function start() {
     console.log(`🚀 Scoreboard API server running on http://${host}:${port}`);
     console.log(`📊 WebSocket endpoint: ws://${host}:${port}/ws`);
     console.log(`🌐 Frontend demo: http://${host}:${port}/`);
+    console.log(`📚 API Documentation: http://${host}:${port}/docs`);
     
   } catch (err) {
     console.error('Error starting server:', err);
