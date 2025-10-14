@@ -1,54 +1,55 @@
 export const swaggerConfig = {
-  openapi: '3.0.0',
-  info: {
-    title: 'Scoreboard API',
-    description: 'Real-time scoreboard system with live updates and security measures',
-    version: '1.0.0',
-    contact: {
-      name: 'API Support',
-      email: 'support@example.com'
-    },
-    license: {
-      name: 'MIT',
-      url: 'https://opensource.org/licenses/MIT'
-    }
-  },
-  servers: [
-    {
-      url: 'http://localhost:3000',
-      description: 'Development server'
-    },
-    {
-      url: 'https://scoreboard-system-mvp.onrender.com',
-      description: 'Production server'
-    }
-  ],
-  tags: [
-    {
-      name: 'Authentication',
-      description: 'User authentication endpoints'
-    },
-    {
-      name: 'Scoreboard',
-      description: 'Scoreboard management endpoints'
-    },
-    {
-      name: 'System',
-      description: 'System health and cache management'
-    },
-    {
-      name: 'WebSocket',
-      description: 'Real-time WebSocket connections'
-    }
-  ],
-  components: {
-    securitySchemes: {
-      bearerAuth: {
-        type: 'http',
-        scheme: 'bearer',
-        bearerFormat: 'JWT'
+  openapi: {
+    openapi: '3.0.0',
+    info: {
+      title: 'Scoreboard API',
+      description: 'Real-time scoreboard system with live updates and security measures',
+      version: '1.0.0',
+      contact: {
+        name: 'API Support',
+        email: 'support@example.com'
+      },
+      license: {
+        name: 'MIT',
+        url: 'https://opensource.org/licenses/MIT'
       }
     },
+    servers: [
+      {
+        url: 'http://localhost:3000',
+        description: 'Development server'
+      },
+      {
+        url: 'https://scoreboard-system-mvp.onrender.com',
+        description: 'Production server'
+      }
+    ],
+    tags: [
+      {
+        name: 'Authentication',
+        description: 'User authentication endpoints'
+      },
+      {
+        name: 'Scoreboard',
+        description: 'Scoreboard management endpoints'
+      },
+      {
+        name: 'System',
+        description: 'System health and cache management'
+      },
+      {
+        name: 'WebSocket',
+        description: 'Real-time WebSocket connections'
+      }
+    ],
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT'
+        }
+      },
     schemas: {
       User: {
         type: 'object',
@@ -290,6 +291,7 @@ export const swaggerConfig = {
         }
       }
     }
+  }
   }
 };
 

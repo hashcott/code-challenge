@@ -37,9 +37,7 @@ async function build() {
   await fastify.register(websocket);
 
   // Register Swagger
-  await fastify.register(swagger, {
-    openapi: swaggerConfig as any
-  });
+  await fastify.register(swagger, swaggerConfig as any);
   await fastify.register(swaggerUi, swaggerUiConfig);
 
   await fastify.register(staticFiles, {
