@@ -1,0 +1,56 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  score     Score?
+  actionLogs ActionLog[]
+
+  @@map("users")
+}
+
+model Score {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  score       Int      @default(0)
+  lastUpdated DateTime @default(now()) @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("scores")
+}
+
+model ActionLog {
+  id             String   @id @default(cuid())
+  userId         String
+  actionId       String   @unique
+  scoreIncrement Int
+  actionHash     String
+  timestamp      DateTime
+  ipAddress      String?
+  createdAt      DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("action_logs")
+  @@index([actionId])
+  @@index([userId, timestamp])
+}
