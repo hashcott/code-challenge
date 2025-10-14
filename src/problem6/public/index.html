@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scoreboard System Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .auth-section {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .auth-form {
+            flex: 1;
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+        }
+
+        .auth-form h3 {
+            margin-bottom: 20px;
+            color: #495057;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            width: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .status.connected {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.disconnected {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .scoreboard-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .scoreboard-section h3 {
+            margin-bottom: 20px;
+            color: #495057;
+        }
+
+        .scoreboard {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .scoreboard-header {
+            background: #667eea;
+            color: white;
+            padding: 15px;
+            font-weight: 600;
+            display: grid;
+            grid-template-columns: 60px 1fr 100px;
+            gap: 15px;
+        }
+
+        .scoreboard-entry {
+            padding: 15px;
+            border-bottom: 1px solid #e9ecef;
+            display: grid;
+            grid-template-columns: 60px 1fr 100px;
+            gap: 15px;
+            transition: background-color 0.3s;
+        }
+
+        .scoreboard-entry:hover {
+            background: #f8f9fa;
+        }
+
+        .scoreboard-entry:last-child {
+            border-bottom: none;
+        }
+
+        .rank {
+            font-weight: 700;
+            color: #667eea;
+            text-align: center;
+        }
+
+        .username {
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .score {
+            text-align: right;
+            font-weight: 700;
+            color: #28a745;
+        }
+
+        .action-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+        }
+
+        .action-section h3 {
+            margin-bottom: 20px;
+            color: #495057;
+        }
+
+        .action-controls {
+            display: flex;
+            gap: 15px;
+            align-items: end;
+        }
+
+        .action-controls input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #6c757d;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #f5c6cb;
+            position: relative;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .error-header {
+            font-weight: bold;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .error-details {
+            font-size: 0.9em;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+
+        .error-code {
+            background: rgba(114, 28, 36, 0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-family: monospace;
+        }
+
+        .rate-limit-error {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .rate-limit-error .error-header {
+            color: #856404;
+        }
+
+        .rate-limit-error .error-code {
+            background: rgba(133, 100, 4, 0.1);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #c3e6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏆 Scoreboard System</h1>
+            <p>Real-time scoreboard with WebSocket updates</p>
+        </div>
+
+        <div class="content">
+            <!-- Connection Status -->
+            <div id="connectionStatus" class="status disconnected">
+                WebSocket: Disconnected
+            </div>
+
+            <!-- Auth Section -->
+            <div class="auth-section">
+                <div class="auth-form">
+                    <h3>🔐 Register</h3>
+                    <form id="registerForm">
+                        <div class="form-group">
+                            <label for="regUsername">Username</label>
+                            <input type="text" id="regUsername" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="regEmail">Email</label>
+                            <input type="email" id="regEmail" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="regPassword">Password</label>
+                            <input type="password" id="regPassword" required>
+                        </div>
+                        <button type="submit" class="btn">Register</button>
+                    </form>
+                </div>
+
+                <div class="auth-form">
+                    <h3>🔑 Login</h3>
+                    <form id="loginForm">
+                        <div class="form-group">
+                            <label for="loginEmail">Email</label>
+                            <input type="email" id="loginEmail" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="loginPassword">Password</label>
+                            <input type="password" id="loginPassword" required>
+                        </div>
+                        <button type="submit" class="btn">Login</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- User Info -->
+            <div id="userInfo" class="hidden">
+                <div class="success">
+                    <strong>Welcome, <span id="userName"></span>!</strong>
+                    <button id="logoutBtn" class="btn" style="margin-left: 15px; width: auto; padding: 8px 16px;">Logout</button>
+                </div>
+            </div>
+
+            <!-- Scoreboard Section -->
+            <div class="scoreboard-section">
+                <h3>📊 Live Scoreboard</h3>
+                <div id="scoreboard" class="scoreboard">
+                    <div class="loading">Loading scoreboard...</div>
+                </div>
+            </div>
+
+            <!-- Action Section -->
+            <div id="actionSection" class="action-section hidden">
+                <h3>🎯 Complete Action</h3>
+                <div class="action-controls">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label for="scoreIncrement">Score Increment</label>
+                        <input type="number" id="scoreIncrement" value="50" min="1" max="1000">
+                    </div>
+                    <button id="completeActionBtn" class="btn">Complete Action</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class ScoreboardApp {
+            constructor() {
+                this.ws = null;
+                this.token = localStorage.getItem('token');
+                this.user = JSON.parse(localStorage.getItem('user') || 'null');
+                this.apiBase = window.location.origin;
+                
+                this.initializeEventListeners();
+                this.initializeWebSocket();
+                this.loadScoreboard();
+                
+                // Hide action section by default
+                document.getElementById('actionSection').classList.add('hidden');
+                
+                if (this.user && this.user.username) {
+                    this.showUserInfo();
+                }
+            }
+
+            initializeEventListeners() {
+                document.getElementById('registerForm').addEventListener('submit', (e) => this.handleRegister(e));
+                document.getElementById('loginForm').addEventListener('submit', (e) => this.handleLogin(e));
+                document.getElementById('logoutBtn').addEventListener('click', () => this.handleLogout());
+                document.getElementById('completeActionBtn').addEventListener('click', () => this.handleCompleteAction());
+            }
+
+            async handleRegister(e) {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                const data = {
+                    username: formData.get('username') || document.getElementById('regUsername').value,
+                    email: formData.get('email') || document.getElementById('regEmail').value,
+                    password: formData.get('password') || document.getElementById('regPassword').value
+                };
+
+                try {
+                    const response = await fetch(`${this.apiBase}/api/auth/register`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        this.token = result.data.token;
+                        this.user = result.data.user;
+                        localStorage.setItem('token', this.token);
+                        localStorage.setItem('user', JSON.stringify(this.user));
+                        this.showUserInfo();
+                        this.showMessage('Registration successful!', 'success');
+                    } else {
+                        this.showBackendError('Registration Failed', result.error, response.status);
+                    }
+                } catch (error) {
+                    this.showNetworkError('Registration Failed', error);
+                }
+            }
+
+            async handleLogin(e) {
+                e.preventDefault();
+                const data = {
+                    email: document.getElementById('loginEmail').value,
+                    password: document.getElementById('loginPassword').value
+                };
+
+                try {
+                    const response = await fetch(`${this.apiBase}/api/auth/login`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        this.token = result.data.token;
+                        this.user = result.data.user;
+                        localStorage.setItem('token', this.token);
+                        localStorage.setItem('user', JSON.stringify(this.user));
+                        this.showUserInfo();
+                        this.showMessage('Login successful!', 'success');
+                    } else {
+                        this.showBackendError('Login Failed', result.error, response.status);
+                    }
+                } catch (error) {
+                    this.showNetworkError('Login Failed', error);
+                }
+            }
+
+            handleLogout() {
+                this.token = null;
+                this.user = null;
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                this.hideUserInfo();
+                this.showMessage('Logged out successfully', 'success');
+            }
+
+            showUserInfo() {
+                document.getElementById('userInfo').classList.remove('hidden');
+                document.getElementById('actionSection').classList.remove('hidden');
+                // Hide auth forms when user is logged in
+                document.querySelector('.auth-section').classList.add('hidden');
+                const userNameEl = document.getElementById('userName');
+                if (userNameEl && this.user) {
+                    userNameEl.textContent = this.user.username;
+                }
+            }
+
+            hideUserInfo() {
+                document.getElementById('userInfo').classList.add('hidden');
+                document.getElementById('actionSection').classList.add('hidden');
+                // Show auth forms when user logs out
+                document.querySelector('.auth-section').classList.remove('hidden');
+            }
+
+            async handleCompleteAction() {
+                if (!this.token) {
+                    this.showMessage('Please login first', 'error');
+                    return;
+                }
+
+                const scoreIncrement = parseInt(document.getElementById('scoreIncrement').value);
+                
+                try {
+                    // Generate action data
+                    const actionResponse = await fetch(`${this.apiBase}/api/scoreboard/generate-action`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${this.token}`
+                        },
+                        body: JSON.stringify({ scoreIncrement })
+                    });
+
+                    const actionResult = await actionResponse.json();
+                    
+                    if (!actionResult.success) {
+                        this.showBackendError('Action Generation Failed', actionResult.error, actionResponse.status);
+                        return;
+                    }
+
+                    // Update score
+                    const updateResponse = await fetch(`${this.apiBase}/api/scoreboard/update`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${this.token}`
+                        },
+                        body: JSON.stringify(actionResult.data)
+                    });
+
+                    const updateResult = await updateResponse.json();
+                    
+                    if (updateResult.success) {
+                        this.showMessage(`Score updated! New score: ${updateResult.data.newScore}`, 'success');
+                    } else {
+                        this.showBackendError('Score Update Failed', updateResult.error, updateResponse.status);
+                    }
+                } catch (error) {
+                    this.showNetworkError('Action Failed', error);
+                }
+            }
+
+            initializeWebSocket() {
+                const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+                const wsUrl = `${protocol}//${window.location.host}/ws`;
+                
+                this.ws = new WebSocket(wsUrl);
+                
+                this.ws.onopen = () => {
+                    this.updateConnectionStatus(true);
+                    console.log('WebSocket connected');
+                };
+                
+                this.ws.onmessage = (event) => {
+                    const message = JSON.parse(event.data);
+                    console.log('WebSocket message:', message);
+                    
+                    if (message.type === 'scoreboard_update') {
+                        this.updateScoreboard(message.data.scoreboard);
+                    }
+                };
+                
+                this.ws.onclose = () => {
+                    this.updateConnectionStatus(false);
+                    console.log('WebSocket disconnected');
+                    
+                    // Reconnect after 3 seconds
+                    setTimeout(() => {
+                        this.initializeWebSocket();
+                    }, 3000);
+                };
+                
+                this.ws.onerror = (error) => {
+                    console.error('WebSocket error:', error);
+                    this.updateConnectionStatus(false);
+                };
+            }
+
+            updateConnectionStatus(connected) {
+                const statusEl = document.getElementById('connectionStatus');
+                if (connected) {
+                    statusEl.className = 'status connected';
+                    statusEl.textContent = 'WebSocket: Connected';
+                } else {
+                    statusEl.className = 'status disconnected';
+                    statusEl.textContent = 'WebSocket: Disconnected';
+                }
+            }
+
+            async loadScoreboard() {
+                try {
+                    const response = await fetch(`${this.apiBase}/api/scoreboard`);
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        this.updateScoreboard(result.data.scoreboard);
+                    } else {
+                        this.showBackendError('Scoreboard Load Failed', result.error, response.status);
+                    }
+                } catch (error) {
+                    this.showNetworkError('Scoreboard Load Failed', error);
+                }
+            }
+
+            updateScoreboard(scoreboard) {
+                const scoreboardEl = document.getElementById('scoreboard');
+                
+                if (!scoreboard || scoreboard.length === 0) {
+                    scoreboardEl.innerHTML = '<div class="loading">No scores available</div>';
+                    return;
+                }
+
+                const html = `
+                    <div class="scoreboard-header">
+                        <div>Rank</div>
+                        <div>Username</div>
+                        <div>Score</div>
+                    </div>
+                    ${scoreboard.map(entry => `
+                        <div class="scoreboard-entry">
+                            <div class="rank">#${entry.rank}</div>
+                            <div class="username">${entry.username}</div>
+                            <div class="score">${entry.score.toLocaleString()}</div>
+                        </div>
+                    `).join('')}
+                `;
+                
+                scoreboardEl.innerHTML = html;
+            }
+
+            showMessage(message, type) {
+                // Remove existing messages
+                const existingMessages = document.querySelectorAll('.error, .success');
+                existingMessages.forEach(el => el.remove());
+
+                // Create new message
+                const messageEl = document.createElement('div');
+                messageEl.className = type;
+                messageEl.textContent = message;
+                
+                // Insert after header
+                const header = document.querySelector('.header');
+                header.insertAdjacentElement('afterend', messageEl);
+                
+                // Auto-remove after 5 seconds
+                setTimeout(() => {
+                    messageEl.remove();
+                }, 5000);
+            }
+
+            showBackendError(title, error, statusCode) {
+                // Remove existing messages
+                const existingMessages = document.querySelectorAll('.error, .success');
+                existingMessages.forEach(el => el.remove());
+
+                // Handle different error structures
+                let errorMessage = 'An unknown error occurred';
+                let errorCode = '';
+                let retryAfter = null;
+                
+                if (typeof error === 'string') {
+                    errorMessage = error;
+                } else if (error && typeof error === 'object') {
+                    // Handle nested error structure (error.error.message)
+                    if (error.error && error.error.message) {
+                        errorMessage = error.error.message;
+                        errorCode = error.error.code || '';
+                        retryAfter = error.error.retryAfter || error.retryAfter;
+                    } else if (error.message) {
+                        errorMessage = error.message;
+                        errorCode = error.code || '';
+                        retryAfter = error.retryAfter;
+                    }
+                }
+                
+                // Create detailed error message
+                const errorEl = document.createElement('div');
+                errorEl.className = 'error';
+                
+                // Check if it's a rate limit error
+                const isRateLimit = retryAfter || 
+                    errorMessage.toLowerCase().includes('rate limit') ||
+                    errorMessage.toLowerCase().includes('too many requests');
+                
+                if (isRateLimit) {
+                    errorEl.classList.add('rate-limit-error');
+                }
+                
+                let errorHtml = `
+                    <div class="error-header">
+                        🚨 ${title}
+                        ${errorCode ? `<span class="error-code">${errorCode}</span>` : ''}
+                    </div>
+                    <div>${errorMessage}</div>
+                `;
+
+                // Add retry after information for rate limits
+                if (retryAfter) {
+                    errorHtml += `<div class="error-details">⏰ Please try again in ${retryAfter} seconds</div>`;
+                }
+
+                // Add additional details if available
+                if (error.details) {
+                    errorHtml += `<div class="error-details">Details: ${error.details}</div>`;
+                }
+
+                // Add validation errors if available
+                if (error.validation) {
+                    errorHtml += `<div class="error-details">Validation errors: ${JSON.stringify(error.validation)}</div>`;
+                }
+
+                // Add status code
+                if (statusCode) {
+                    errorHtml += `<div class="error-details">Status: ${statusCode}</div>`;
+                }
+
+                errorEl.innerHTML = errorHtml;
+                
+                // Insert after header
+                const header = document.querySelector('.header');
+                header.insertAdjacentElement('afterend', errorEl);
+                
+                // Auto-remove after 8 seconds (longer for detailed errors)
+                setTimeout(() => {
+                    errorEl.remove();
+                }, 8000);
+            }
+
+            showNetworkError(title, error) {
+                // Remove existing messages
+                const existingMessages = document.querySelectorAll('.error, .success');
+                existingMessages.forEach(el => el.remove());
+
+                // Create network error message
+                const errorEl = document.createElement('div');
+                errorEl.className = 'error';
+                
+                let errorMessage = 'Network connection failed';
+                if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                    errorMessage = 'Unable to connect to server. Please check your internet connection.';
+                } else if (error.message) {
+                    errorMessage = error.message;
+                }
+
+                errorEl.innerHTML = `
+                    <div class="error-header">
+                        🌐 ${title}
+                        <span class="error-code">NETWORK_ERROR</span>
+                    </div>
+                    <div>${errorMessage}</div>
+                    <div class="error-details">Please try again or contact support if the problem persists.</div>
+                `;
+                
+                // Insert after header
+                const header = document.querySelector('.header');
+                header.insertAdjacentElement('afterend', errorEl);
+                
+                // Auto-remove after 8 seconds
+                setTimeout(() => {
+                    errorEl.remove();
+                }, 8000);
+            }
+        }
+
+        // Initialize app when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            new ScoreboardApp();
+        });
+    </script>
+</body>
+</html>
