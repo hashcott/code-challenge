@@ -85,11 +85,11 @@ fastify.delete('/api/cache/clear', { preHandler: [authenticateToken, rateLimiter
   };
 });
 
-  // Auth routes with rate limiting
-  fastify.post('/api/auth/register', { preHandler: rateLimiters.auth }, async (request, reply) => {
+  // Auth routes without rate limiting
+  fastify.post('/api/auth/register', async (request, reply) => {
     return await AuthController.register(request as any, reply);
   });
-  fastify.post('/api/auth/login', { preHandler: rateLimiters.auth }, async (request, reply) => {
+  fastify.post('/api/auth/login', async (request, reply) => {
     return await AuthController.login(request as any, reply);
   });
 
