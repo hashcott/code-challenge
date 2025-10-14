@@ -395,8 +395,16 @@
                 // Hide action section by default
                 document.getElementById('actionSection').classList.add('hidden');
                 
-                if (this.user && this.user.username) {
+                // Validate session on startup
+                if (this.user && this.user.username && this.token) {
                     this.showUserInfo();
+                } else {
+                    // Clear invalid session data without showing logout message
+                    this.token = null;
+                    this.user = null;
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                    this.hideUserInfo();
                 }
             }
 
@@ -430,8 +438,15 @@
                         this.user = result.data.user;
                         localStorage.setItem('token', this.token);
                         localStorage.setItem('user', JSON.stringify(this.user));
+                        
+                        // Clear form after successful registration
+                        document.getElementById('registerForm').reset();
+                        
                         this.showUserInfo();
                         this.showMessage('Registration successful!', 'success');
+                        
+                        // Reconnect WebSocket with new token
+                        this.reconnectWebSocket();
                     } else {
                         this.showBackendError('Registration Failed', result.error, response.status);
                     }
@@ -461,8 +476,15 @@
                         this.user = result.data.user;
                         localStorage.setItem('token', this.token);
                         localStorage.setItem('user', JSON.stringify(this.user));
+                        
+                        // Clear form after successful login
+                        document.getElementById('loginForm').reset();
+                        
                         this.showUserInfo();
                         this.showMessage('Login successful!', 'success');
+                        
+                        // Reconnect WebSocket with new token
+                        this.reconnectWebSocket();
                     } else {
                         this.showBackendError('Login Failed', result.error, response.status);
                     }
@@ -476,6 +498,13 @@
                 this.user = null;
                 localStorage.removeItem('token');
                 localStorage.removeItem('user');
+                
+                // Close WebSocket connection
+                if (this.ws) {
+                    this.ws.close();
+                    this.ws = null;
+                }
+                
                 this.hideUserInfo();
                 this.showMessage('Logged out successfully', 'success');
             }
@@ -499,8 +528,7 @@
             }
 
             async handleCompleteAction() {
-                if (!this.token) {
-                    this.showMessage('Please login first', 'error');
+                if (!this.validateSession()) {
                     return;
                 }
 
@@ -520,6 +548,11 @@
                     const actionResult = await actionResponse.json();
                     
                     if (!actionResult.success) {
+                        // Check if token is invalid
+                        if (actionResponse.status === 401) {
+                            this.handleUnauthorized();
+                            return;
+                        }
                         this.showBackendError('Action Generation Failed', actionResult.error, actionResponse.status);
                         return;
                     }
@@ -539,6 +572,11 @@
                     if (updateResult.success) {
                         this.showMessage(`Score updated! New score: ${updateResult.data.newScore}`, 'success');
                     } else {
+                        // Check if token is invalid
+                        if (updateResponse.status === 401) {
+                            this.handleUnauthorized();
+                            return;
+                        }
                         this.showBackendError('Score Update Failed', updateResult.error, updateResponse.status);
                     }
                 } catch (error) {
@@ -570,16 +608,31 @@
                     this.updateConnectionStatus(false);
                     console.log('WebSocket disconnected');
                     
-                    // Reconnect after 3 seconds
-                    setTimeout(() => {
-                        this.initializeWebSocket();
-                    }, 3000);
+                    // Only reconnect if user is still logged in
+                    if (this.token && this.user) {
+                        setTimeout(() => {
+                            this.initializeWebSocket();
+                        }, 3000);
+                    }
                 };
                 
                 this.ws.onerror = (error) => {
                     console.error('WebSocket error:', error);
                     this.updateConnectionStatus(false);
                 };
+            }
+
+            reconnectWebSocket() {
+                // Close existing connection
+                if (this.ws) {
+                    this.ws.close();
+                    this.ws = null;
+                }
+                
+                // Reconnect with new token
+                if (this.token && this.user) {
+                    this.initializeWebSocket();
+                }
             }
 
             updateConnectionStatus(connected) {
@@ -606,6 +659,21 @@
                 } catch (error) {
                     this.showNetworkError('Scoreboard Load Failed', error);
                 }
+            }
+
+            // Validate token and user session
+            validateSession() {
+                if (!this.token || !this.user) {
+                    this.handleLogout();
+                    return false;
+                }
+                return true;
+            }
+
+            // Handle 401 Unauthorized errors
+            handleUnauthorized() {
+                this.showMessage('Session expired. Please login again.', 'error');
+                this.handleLogout();
             }
 
             updateScoreboard(scoreboard) {
