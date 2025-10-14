@@ -72,18 +72,24 @@ Hướng dẫn deploy Express TypeScript CRUD API lên Render.com
 
 ### Phương pháp 3: Sử dụng Docker
 
-1. **Build Docker image**
+1. **Test Docker build locally**
+   ```bash
+   # Test Docker build process
+   ./scripts/docker-test.sh
+   ```
+
+2. **Build Docker image manually**
    ```bash
    docker build -t express-crud-api .
    ```
 
-2. **Test locally**
+3. **Test locally**
    ```bash
    docker run -p 3000:3000 express-crud-api
    ```
 
-3. **Deploy to Render**
-   - Sử dụng Dockerfile có sẵn
+4. **Deploy to Render**
+   - Sử dụng Dockerfile có sẵn (multi-stage build)
    - Render sẽ build và run container
 
 ## 🔍 Kiểm tra deployment
@@ -141,8 +147,11 @@ LOG_LEVEL=info
 # Check build logs
 # Common issues:
 # - Node version mismatch
-# - Missing dependencies
+# - Missing dependencies (tsc not found - FIXED with multi-stage build)
 # - TypeScript compilation errors
+
+# Test Docker build locally
+./scripts/docker-test.sh
 ```
 
 ### Runtime Errors

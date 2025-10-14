@@ -13,6 +13,5 @@ tests
 *.test.js
 *.test.ts
 jest.config.js
-tsconfig.json
 .vscode
 .idea

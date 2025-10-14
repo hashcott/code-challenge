@@ -4,7 +4,8 @@
   "description": "Express TypeScript CRUD API with SQLite",
   "main": "dist/main.js",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc --noEmitOnError",
+    "build:docker": "tsc -p tsconfig.json",
     "start": "node dist/main.js",
     "dev": "ts-node main.ts",
     "watch": "ts-node --watch main.ts",

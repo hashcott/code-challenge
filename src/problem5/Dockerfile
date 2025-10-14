@@ -8,20 +8,23 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies
-RUN npm ci --only=production
+RUN npm ci
+
+# Copy tsconfig.json first
+COPY tsconfig.json ./
 
 # Copy source code
 COPY . .
 
 # Build TypeScript
-RUN npm run build
+RUN npm run build:docker
 
 # Remove dev dependencies after build
 RUN npm prune --production
 
 # Create non-root user
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S nodejs -u 1001
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001
 
 # Change ownership of the app directory
 RUN chown -R nodejs:nodejs /app
