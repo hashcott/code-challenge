@@ -1,6 +1,9 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { AuthService } from '../services/AuthService';
 import { AuthRequest, LoginRequest, AuthResponse } from '../types';
+import { WebSocketService } from '../services/WebSocketService';
+import { ScoreboardService } from '../services/ScoreboardService';
+import { cacheService } from '../services/CacheService';
 
 export class AuthController {
   static async register(
@@ -40,6 +43,9 @@ export class AuthController {
         email: user.email
       });
 
+      // Invalidate cache BEFORE sending response to ensure fresh data for next request
+      await cacheService.invalidateScoreboard();
+      
       const response: AuthResponse = {
         success: true,
         data: {
@@ -53,6 +59,20 @@ export class AuthController {
       };
 
       reply.status(201).send(response);
+
+      // Broadcast scoreboard update via WebSocket after response is sent
+      // Use setImmediate to ensure response is fully sent before broadcasting
+      setImmediate(async () => {
+        try {
+          // Get fresh scoreboard and broadcast to all connected clients
+          const scoreboard = await ScoreboardService.getTopScores(10);
+          WebSocketService.broadcastScoreboardUpdate(scoreboard);
+          
+          console.log(`New user registered: ${username}. Scoreboard updated and broadcasted.`);
+        } catch (wsError) {
+          console.error('Failed to broadcast scoreboard update:', wsError);
+        }
+      });
     } catch (error) {
       console.error('Registration error:', error);
       

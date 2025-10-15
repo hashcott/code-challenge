@@ -828,6 +828,11 @@
                         
                         // Reconnect WebSocket with new token
                         this.reconnectWebSocket();
+                        
+                        // Wait briefly for database transaction to complete, then load scoreboard
+                        setTimeout(async () => {
+                            await this.loadScoreboard();
+                        }, 500);
                     } else {
                         this.showBackendError('Registration Failed', result.error, response.status);
                     }
@@ -1065,9 +1070,12 @@
                     return;
                 }
 
+                // Always show top 10 users regardless of score
+                const filteredScoreboard = scoreboard.slice(0, 10);
+
                 // Store previous state for comparison
                 const previousEntries = this.previousScoreboard || [];
-                this.previousScoreboard = [...scoreboard];
+                this.previousScoreboard = [...filteredScoreboard];
 
                 const html = `
                     <div class="scoreboard-header">
@@ -1075,7 +1083,7 @@
                         <div>Username</div>
                         <div>Score</div>
                     </div>
-                    ${scoreboard.map(entry => `
+                    ${filteredScoreboard.map(entry => `
                         <div class="scoreboard-entry" data-username="${entry.username}" data-rank="${entry.rank}" data-score="${entry.score}">
                             <div class="rank">#${entry.rank}</div>
                             <div class="username">${entry.username}</div>
@@ -1087,7 +1095,7 @@
                 scoreboardEl.innerHTML = html;
 
                 // Add animations based on changes
-                this.addScoreboardAnimations(scoreboard, previousEntries);
+                this.addScoreboardAnimations(filteredScoreboard, previousEntries);
             }
 
             addScoreboardAnimations(newScoreboard, previousScoreboard) {
