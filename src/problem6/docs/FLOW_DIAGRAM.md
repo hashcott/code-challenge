@@ -10,30 +10,29 @@ graph TB
         C --> D[API Call to Update Score]
     end
     
-    subgraph "API Gateway"
-        E[Load Balancer] --> F[Rate Limiter]
-        F --> G[Authentication Middleware]
+    subgraph "Fastify Server"
+        E[CORS Middleware] --> F[JWT Authentication]
+        F --> G[Rate Limiting]
+        G --> H[Request Validation]
     end
     
-    subgraph "Backend Services"
-        H[Score Update API] --> I[Validation Service]
-        I --> J[Security Check]
-        J --> K[Database Transaction]
-        K --> L[Cache Update]
-        L --> M[Real-time Notification]
+    subgraph "Controllers & Services"
+        I[AuthController] --> J[ScoreboardController]
+        J --> K[CacheService]
+        K --> L[WebSocketService]
     end
     
     subgraph "Data Layer"
-        N[(PostgreSQL)]
-        O[(Redis Cache)]
-        P[WebSocket Server]
+        M[(PostgreSQL<br/>Prisma ORM)]
+        N[(Redis Cache<br/>Multi-level)]
+        O[WebSocket Connections]
     end
     
     D --> E
-    G --> H
+    H --> I
+    L --> M
     K --> N
     L --> O
-    M --> P
 ```
 
 ## Future Architecture Improvements
@@ -95,61 +94,69 @@ graph LR
 ### Multi-Level Caching Strategy
 ```mermaid
 graph TB
-    A[Client Request] --> B{CDN Cache}
+    A[Client Request] --> B{Memory Cache<br/>L1 Cache}
     B -->|Hit| C[Return Cached Data]
-    B -->|Miss| D{Memory Cache}
-    D -->|Hit| E[Return Cached Data]
-    D -->|Miss| F{Redis Cache}
-    F -->|Hit| G[Update Memory Cache]
-    G --> H[Return Cached Data]
-    F -->|Miss| I[Database Query]
-    I --> J[Update All Caches]
-    J --> K[Return Data]
+    B -->|Miss| D{Redis Cache<br/>L2 Cache}
+    D -->|Hit| E[Update Memory Cache]
+    E --> F[Return Cached Data]
+    D -->|Miss| G[Database Query<br/>Prisma ORM]
+    G --> H[Update Redis Cache]
+    H --> I[Update Memory Cache]
+    I --> J[Return Data]
     
-    L[Cache Invalidation] --> M[Clear Related Caches]
-    M --> N[Update Scoreboard]
-    N --> O[Broadcast WebSocket]
+    K[Score Update] --> L[Invalidate Scoreboard Cache]
+    L --> M[Invalidate User Score Cache]
+    M --> N[Update Scoreboard Cache]
+    N --> O[Broadcast WebSocket Update]
 ```
 
 ### Cache-Aside Pattern
 ```mermaid
 sequenceDiagram
     participant C as Client
-    participant A as Application
+    participant A as Fastify App
     participant M as Memory Cache
     participant R as Redis Cache
-    participant D as Database
+    participant P as Prisma ORM
+    participant D as PostgreSQL
     
     C->>A: GET /api/scoreboard
     A->>M: Check Memory Cache
     M-->>A: Cache Miss
     A->>R: Check Redis Cache
     R-->>A: Cache Miss
-    A->>D: Query Database
-    D-->>A: Return Data
-    A->>R: Update Redis Cache
-    A->>M: Update Memory Cache
-    A-->>C: Return Data
+    A->>P: Query Database
+    P->>D: SELECT with ORDER BY
+    D-->>P: Return Scoreboard Data
+    P-->>A: Return Data
+    A->>R: Update Redis Cache (TTL: 30s)
+    A->>M: Update Memory Cache (TTL: 30s)
+    A-->>C: Return Scoreboard
 ```
 
 ### Write-Through Caching
 ```mermaid
 sequenceDiagram
     participant C as Client
-    participant A as Application
+    participant A as Fastify App
     participant M as Memory Cache
     participant R as Redis Cache
-    participant D as Database
-    participant W as WebSocket
+    participant P as Prisma ORM
+    participant D as PostgreSQL
+    participant W as WebSocketService
     
     C->>A: POST /api/scoreboard/update
-    A->>D: Update Database
-    D-->>A: Success
-    A->>R: Update Redis Cache
+    A->>A: Validate JWT & Action Hash
+    A->>P: Update Score in Database
+    P->>D: UPDATE scores SET score = score + ?
+    D-->>P: Success
+    P-->>A: Return Updated Score
+    A->>R: Update User Score Cache
     A->>M: Update Memory Cache
     A->>R: Invalidate Scoreboard Cache
-    A->>W: Broadcast Update
-    A-->>C: Return Success
+    A->>W: Broadcast Scoreboard Update
+    W->>W: Send to All Connected Clients
+    A-->>C: Return Success Response
 ```
 
 ### Cache Warming Strategy
@@ -333,22 +340,29 @@ sequenceDiagram
 sequenceDiagram
     participant U as User
     participant F as Frontend
-    participant A as API Server
-    participant D as Database
-    participant W as WebSocket
-    participant C as Other Clients
+    participant A as Fastify Server
+    participant C as CacheService
+    participant P as Prisma ORM
+    participant D as PostgreSQL
+    participant W as WebSocketService
+    participant O as Other Clients
     
     U->>F: Complete Action
     F->>A: POST /api/scoreboard/generate-action
+    A->>A: Generate Action Hash
     A-->>F: Return action data with hash
     F->>A: POST /api/scoreboard/update
     A->>A: Validate JWT token
     A->>A: Verify action hash
-    A->>A: Check rate limits
-    A->>D: Update user score
-    D-->>A: Confirm update
+    A->>A: Check rate limits (10/min)
+    A->>P: Update user score
+    P->>D: UPDATE scores SET score = score + ?
+    D-->>P: Confirm update
+    P-->>A: Return updated score
+    A->>C: Invalidate scoreboard cache
+    A->>C: Update user score cache
     A->>W: Broadcast scoreboard update
-    W->>C: Send real-time update
+    W->>O: Send real-time update
     A-->>F: Return success response
     F->>U: Show updated score
 ```
@@ -359,15 +373,25 @@ sequenceDiagram
 sequenceDiagram
     participant U as User
     participant F as Frontend
-    participant A as API Server
-    participant D as Database
+    participant A as Fastify Server
+    participant AC as AuthController
+    participant AS as AuthService
+    participant P as Prisma ORM
+    participant D as PostgreSQL
     
     U->>F: Enter credentials
     F->>A: POST /api/auth/login
-    A->>D: Verify credentials
-    D-->>A: Return user data
-    A->>A: Generate JWT token
-    A-->>F: Return token + user data
+    A->>AC: Route to AuthController
+    AC->>AS: Login with email/password
+    AS->>P: Find user by email
+    P->>D: SELECT * FROM users WHERE email = ?
+    D-->>P: Return user data
+    P-->>AS: Return user
+    AS->>AS: Verify password with bcrypt
+    AS-->>AC: Return user data
+    AC->>AC: Generate JWT token
+    AC-->>A: Return token + user data
+    A-->>F: Return success response
     F->>F: Store token locally
     F->>A: Use token for protected requests
 ```
@@ -391,13 +415,35 @@ flowchart TD
     K --> L[Broadcast Update]
 ```
 
+## WebSocket Connection Flow
+
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant A as Fastify Server
+    participant W as WebSocketService
+    participant M as Connection Map
+    
+    C->>A: WebSocket Connection Request
+    A->>W: Create Connection
+    W->>M: Store Connection (connectionId, socket)
+    W->>C: Send Connection Status
+    C->>A: Send Message
+    A->>W: Process Message
+    W->>W: Broadcast to All Connections
+    W->>C: Send Real-time Updates
+    C->>A: Close Connection
+    A->>W: Remove Connection
+    W->>M: Delete from Map
+```
+
 ## Real-time Update Flow
 
 ```mermaid
 graph LR
     A[Score Update] --> B[Database Transaction]
     B --> C[Update Cache]
-    C --> D[WebSocket Broadcast]
+    C --> D[WebSocketService.broadcast]
     D --> E[Client 1]
     D --> F[Client 2]
     D --> G[Client N]
@@ -428,22 +474,29 @@ flowchart TD
 
 ```mermaid
 sequenceDiagram
-    participant A as API Server
+    participant A as Fastify Server
+    participant SC as ScoreboardController
     participant P as Prisma ORM
     participant D as PostgreSQL
-    participant R as Redis Cache
+    participant C as CacheService
+    participant W as WebSocketService
     
-    A->>P: Update Score Request
-    P->>D: Begin Transaction
+    A->>SC: Score Update Request
+    SC->>P: Begin Transaction
+    P->>D: BEGIN TRANSACTION
     D-->>P: Transaction Started
-    P->>D: Update User Score
+    P->>D: UPDATE scores SET score = score + ?
     D-->>P: Score Updated
-    P->>D: Log Action
+    P->>D: INSERT INTO action_logs
     D-->>P: Action Logged
-    P->>D: Commit Transaction
+    P->>D: COMMIT TRANSACTION
     D-->>P: Transaction Committed
-    P-->>A: Success Response
-    A->>R: Update Cache
-    R-->>A: Cache Updated
-    A->>A: Broadcast WebSocket Update
+    P-->>SC: Return Updated Score
+    SC->>C: Invalidate scoreboard cache
+    SC->>C: Update user score cache
+    C-->>SC: Cache Updated
+    SC->>W: Broadcast scoreboard update
+    W->>W: Send to all connected clients
+    SC-->>A: Success Response
+    A-->>A: Return to client
 ```
