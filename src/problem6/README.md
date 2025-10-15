@@ -2,6 +2,15 @@
 
 A real-time scoreboard system with live updates and security measures to prevent unauthorized score manipulation.
 
+## 🏗️ System Design
+
+**📚 [Complete Documentation](docs/)** - Comprehensive system architecture and implementation guides
+
+### 📋 Documentation Contents:
+- **[API Specification](docs/API_SPECIFICATION.md)** - Complete API endpoints, database schema, and security implementation
+- **[System Architecture](docs/FLOW_DIAGRAM.md)** - Architecture diagrams, execution flows, and performance optimization strategies  
+- **[Implementation Guide](docs/IMPLEMENTATION.md)** - Setup instructions, code examples, and development guidelines
+
 ## 🌐 Live Demo
 
 **🚀 [Live Demo on Render](https://scoreboard-system-mvp.onrender.com)**

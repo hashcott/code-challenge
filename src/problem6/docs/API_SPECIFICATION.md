@@ -28,7 +28,10 @@ POST /api/auth/register
     "user": {
       "id": "user123",
       "username": "player1",
-      "email": "player1@example.com"
+      "email": "player1@example.com",
+      "score": 0,
+      "createdAt": "2024-01-15T10:30:00Z",
+      "updatedAt": "2024-01-15T10:30:00Z"
     }
   }
 }
@@ -43,6 +46,23 @@ POST /api/auth/login
 {
   "email": "player1@example.com",
   "password": "password123"
+}
+```
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "token": "jwt_token_here",
+    "user": {
+      "id": "user123",
+      "username": "player1",
+      "email": "player1@example.com",
+      "score": 1500,
+      "createdAt": "2024-01-15T10:30:00Z",
+      "updatedAt": "2024-01-15T10:30:00Z"
+    }
+  }
 }
 ```
 
@@ -220,43 +240,45 @@ GET /ws
 
 ### User Table
 ```sql
-CREATE TABLE User (
+CREATE TABLE users (
   id        String   @id @default(cuid())
   username  String   @unique
   email     String   @unique
   password  String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  scores    Score[]
+  
+  score     Score?
   actionLogs ActionLog[]
 )
 ```
 
 ### Score Table
 ```sql
-CREATE TABLE Score (
+CREATE TABLE scores (
   id          String   @id @default(cuid())
-  userId      String
+  userId      String   @unique
   score       Int      @default(0)
-  lastUpdated DateTime @default(now())
-  user        User     @relation(fields: [userId], references: [id])
-  actionLogs  ActionLog[]
+  lastUpdated DateTime @default(now()) @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 )
 ```
 
 ### ActionLog Table
 ```sql
-CREATE TABLE ActionLog (
-  id           String   @id @default(cuid())
-  userId       String
-  actionId     String
+CREATE TABLE action_logs (
+  id             String   @id @default(cuid())
+  userId         String
+  actionId       String   @unique
   scoreIncrement Int
-  timestamp    DateTime
-  actionHash   String
-  ipAddress    String
-  createdAt    DateTime @default(now())
-  user         User     @relation(fields: [userId], references: [id])
-  score        Score    @relation(fields: [scoreId], references: [id])
+  actionHash     String
+  timestamp      DateTime
+  ipAddress      String?
+  createdAt      DateTime @default(now())
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([actionId])
+  @@index([userId, timestamp])
 )
 ```
 
