@@ -180,16 +180,26 @@ export const swaggerConfig = {
       },
       ScoreUpdateRequest: {
         type: 'object',
-        required: ['actionHash', 'score'],
+        required: ['actionId', 'scoreIncrement', 'timestamp', 'actionHash'],
         properties: {
+          actionId: {
+            type: 'string',
+            description: 'Unique action identifier'
+          },
+          scoreIncrement: {
+            type: 'integer',
+            minimum: 1,
+            maximum: 1000,
+            description: 'Score increment value'
+          },
+          timestamp: {
+            type: 'string',
+            format: 'date-time',
+            description: 'Action timestamp'
+          },
           actionHash: {
             type: 'string',
             description: 'Hash of the action to prevent tampering'
-          },
-          score: {
-            type: 'integer',
-            minimum: 0,
-            description: 'New score value'
           }
         }
       },

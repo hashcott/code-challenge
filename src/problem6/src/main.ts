@@ -466,28 +466,27 @@ fastify.delete('/api/cache/clear', {
         200: {
           type: 'object',
           properties: {
-            scoreboard: {
-              type: 'array',
-              items: {
-                type: 'object',
-                properties: {
-                  rank: { type: 'integer', minimum: 1 },
-                  user: {
+            success: { type: 'boolean', example: true },
+            data: {
+              type: 'object',
+              properties: {
+                scoreboard: {
+                  type: 'array',
+                  items: {
                     type: 'object',
                     properties: {
-                      id: { type: 'string', format: 'uuid' },
+                      rank: { type: 'integer', minimum: 1 },
+                      userId: { type: 'string', format: 'uuid' },
                       username: { type: 'string' },
-                      email: { type: 'string', format: 'email' },
                       score: { type: 'integer', minimum: 0 },
-                      createdAt: { type: 'string', format: 'date-time' },
-                      updatedAt: { type: 'string', format: 'date-time' }
+                      lastUpdated: { type: 'string', format: 'date-time' }
                     }
                   }
-                }
+                },
+                totalUsers: { type: 'integer' },
+                lastUpdated: { type: 'string', format: 'date-time' }
               }
-            },
-            totalUsers: { type: 'integer' },
-            lastUpdated: { type: 'string', format: 'date-time' }
+            }
           }
         },
         500: {
@@ -517,16 +516,26 @@ fastify.delete('/api/cache/clear', {
       security: [{ bearerAuth: [] }],
       body: {
         type: 'object',
-        required: ['actionHash', 'score'],
+        required: ['actionId', 'scoreIncrement', 'timestamp', 'actionHash'],
         properties: {
+          actionId: {
+            type: 'string',
+            description: 'Unique action identifier'
+          },
+          scoreIncrement: {
+            type: 'integer',
+            minimum: 1,
+            maximum: 1000,
+            description: 'Score increment value'
+          },
+          timestamp: {
+            type: 'string',
+            format: 'date-time',
+            description: 'Action timestamp'
+          },
           actionHash: {
             type: 'string',
             description: 'Hash of the action to prevent tampering'
-          },
-          score: {
-            type: 'integer',
-            minimum: 0,
-            description: 'New score value'
           }
         }
       },
@@ -535,7 +544,15 @@ fastify.delete('/api/cache/clear', {
           type: 'object',
           properties: {
             success: { type: 'boolean', example: true },
-            data: { type: 'object' }
+            data: {
+              type: 'object',
+              properties: {
+                userId: { type: 'string', format: 'uuid' },
+                newScore: { type: 'integer', minimum: 0 },
+                rank: { type: 'integer', minimum: 1 },
+                message: { type: 'string' }
+              }
+            }
           }
         },
         400: {
@@ -609,18 +626,11 @@ fastify.delete('/api/cache/clear', {
             data: {
               type: 'object',
               properties: {
-                user: {
-                  type: 'object',
-                  properties: {
-                    id: { type: 'string', format: 'uuid' },
-                    username: { type: 'string' },
-                    email: { type: 'string', format: 'email' },
-                    score: { type: 'integer', minimum: 0 },
-                    createdAt: { type: 'string', format: 'date-time' },
-                    updatedAt: { type: 'string', format: 'date-time' }
-                  }
-                },
-                rank: { type: 'integer', description: 'User rank in scoreboard' }
+                userId: { type: 'string', format: 'uuid' },
+                username: { type: 'string' },
+                score: { type: 'integer', minimum: 0 },
+                rank: { type: 'integer', minimum: 1 },
+                totalUsers: { type: 'integer' }
               }
             }
           }
@@ -678,6 +688,18 @@ fastify.delete('/api/cache/clear', {
       summary: 'Generate action data',
       description: 'Generate action hash and data for secure score updates',
       security: [{ bearerAuth: [] }],
+      body: {
+        type: 'object',
+        required: ['scoreIncrement'],
+        properties: {
+          scoreIncrement: {
+            type: 'integer',
+            minimum: 1,
+            maximum: 1000,
+            description: 'Score increment value'
+          }
+        }
+      },
       response: {
         200: {
           type: 'object',
@@ -687,9 +709,9 @@ fastify.delete('/api/cache/clear', {
               type: 'object',
               properties: {
                 actionId: { type: 'string' },
-                actionHash: { type: 'string' },
+                scoreIncrement: { type: 'integer', minimum: 1, maximum: 1000 },
                 timestamp: { type: 'string', format: 'date-time' },
-                expiresAt: { type: 'string', format: 'date-time' }
+                actionHash: { type: 'string' }
               }
             }
           }
