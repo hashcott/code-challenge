@@ -35,9 +35,33 @@ graph TB
     L --> O
 ```
 
+## Current Architecture Overview
+
+> **✅ Current Implementation**: The system currently uses **monolithic architecture** with Fastify framework, not microservices.
+
+### 🏗️ Current Tech Stack
+- **Backend**: Fastify + TypeScript
+- **Database**: PostgreSQL with Prisma ORM
+- **Cache**: Redis with multi-level caching (Memory + Redis)
+- **Real-time**: WebSocket with custom WebSocketService
+- **Authentication**: JWT tokens
+- **Rate Limiting**: Custom cache-based rate limiting
+- **Documentation**: Swagger/OpenAPI
+
+### 🚫 Not Currently Implemented
+- ❌ Microservices architecture
+- ❌ Email service
+- ❌ Analytics service  
+- ❌ Push notifications
+- ❌ Advanced monitoring (Prometheus/Grafana)
+- ❌ Multi-Factor Authentication (MFA)
+- ❌ Fraud detection system
+
 ## Future Architecture Improvements
 
-### Microservices Architecture
+> **📝 Note**: The architectures below are future development plans, not current implementation.
+
+### 🚀 Phase 2: Microservices Architecture
 ```mermaid
 graph TB
     subgraph "API Gateway"
@@ -46,24 +70,24 @@ graph TB
         C --> D[Routing]
     end
     
-    subgraph "Core Services"
-        E[User Service]
-        F[Scoreboard Service]
-        G[Notification Service]
-        H[Analytics Service]
+    subgraph "Core Services (Future)"
+        E[User Service<br/>🔮 Future]
+        F[Scoreboard Service<br/>🔮 Future]
+        G[Notification Service<br/>🔮 Future]
+        H[Analytics Service<br/>🔮 Future]
     end
     
-    subgraph "Data Layer"
-        I[(User DB)]
-        J[(Score DB)]
-        K[(Analytics DB)]
-        L[(Cache)]
+    subgraph "Data Layer (Future)"
+        I[(User DB<br/>🔮 Future)]
+        J[(Score DB<br/>🔮 Future)]
+        K[(Analytics DB<br/>🔮 Future)]
+        L[(Cache<br/>🔮 Future)]
     end
     
-    subgraph "External Services"
-        M[Email Service]
-        N[Push Notifications]
-        O[Monitoring]
+    subgraph "External Services (Future)"
+        M[Email Service<br/>🔮 Future]
+        N[Push Notifications<br/>🔮 Future]
+        O[Monitoring<br/>🔮 Future]
     end
     
     D --> E
@@ -79,16 +103,16 @@ graph TB
     H --> O
 ```
 
-### Event-Driven Architecture
+### 🔮 Phase 3: Event-Driven Architecture (Future)
 ```mermaid
 graph LR
-    A[User Action] --> B[Event Bus]
-    B --> C[Score Update Handler]
-    B --> D[Notification Handler]
-    B --> E[Analytics Handler]
+    A[User Action] --> B[Event Bus<br/>🔮 Future]
+    B --> C[Score Update Handler<br/>🔮 Future]
+    B --> D[Notification Handler<br/>🔮 Future]
+    B --> E[Analytics Handler<br/>🔮 Future]
     C --> F[Database]
-    D --> G[Push Service]
-    E --> H[Analytics DB]
+    D --> G[Push Service<br/>🔮 Future]
+    E --> H[Analytics DB<br/>🔮 Future]
 ```
 
 ### Multi-Level Caching Strategy
@@ -264,74 +288,74 @@ graph TB
 
 ## Security Enhancement Flows
 
-### Multi-Factor Authentication
+### 🔮 Phase 4: Multi-Factor Authentication (Future)
 ```mermaid
 sequenceDiagram
     participant U as User
     participant F as Frontend
     participant A as Auth Service
-    participant M as MFA Service
+    participant M as MFA Service<br/>🔮 Future
     participant D as Database
     
     U->>F: Login Request
     F->>A: Authenticate
     A->>D: Verify Credentials
     D-->>A: User Found
-    A->>M: Send MFA Code
-    M-->>U: SMS/Email Code
+    A->>M: Send MFA Code<br/>🔮 Future
+    M-->>U: SMS/Email Code<br/>🔮 Future
     U->>F: Enter MFA Code
     F->>A: Verify MFA
-    A->>M: Validate Code
-    M-->>A: Code Valid
+    A->>M: Validate Code<br/>🔮 Future
+    M-->>A: Code Valid<br/>🔮 Future
     A-->>F: Return JWT Token
 ```
 
-### Fraud Detection
+### 🔮 Phase 5: Fraud Detection (Future)
 ```mermaid
 graph TB
-    A[User Action] --> B[Behavior Analysis]
-    B --> C{Anomaly Detected?}
-    C -->|Yes| D[Block Action]
+    A[User Action] --> B[Behavior Analysis<br/>🔮 Future]
+    B --> C{Anomaly Detected?<br/>🔮 Future}
+    C -->|Yes| D[Block Action<br/>🔮 Future]
     C -->|No| E[Allow Action]
-    D --> F[Log Incident]
+    D --> F[Log Incident<br/>🔮 Future]
     E --> G[Process Action]
-    F --> H[Alert Admin]
+    F --> H[Alert Admin<br/>🔮 Future]
     G --> I[Update Score]
 ```
 
 ## Monitoring and Observability
 
-### Health Check Flow
+### Health Check Flow (Current Implementation)
 ```mermaid
 graph TB
-    A[Health Check Request] --> B[API Health]
-    B --> C[Database Health]
+    A[Health Check Request] --> B[Fastify Server Health]
+    B --> C[PostgreSQL Health]
     C --> D[Redis Health]
     D --> E[WebSocket Health]
-    E --> F[External Services]
-    F --> G[Return Health Status]
+    E --> F[Return Health Status]
     
-    H[Metrics Collector] --> I[Prometheus]
-    I --> J[Grafana Dashboard]
-    K[Log Aggregator] --> L[ELK Stack]
-    M[Error Tracker] --> N[Sentry]
+    G[Cache Stats] --> H[Redis Memory Usage]
+    I[Connection Count] --> J[WebSocket Connections]
+    K[Performance Metrics] --> L[Response Time]
 ```
 
-### Alerting Flow
+> **Current Implementation**: The health check endpoint returns system status including cache statistics and WebSocket connection count.
+
+### 🔮 Phase 6: Advanced Alerting Flow (Future)
 ```mermaid
 sequenceDiagram
-    participant M as Monitoring
-    participant A as Alert Manager
-    participant N as Notification Service
+    participant M as Monitoring<br/>🔮 Future
+    participant A as Alert Manager<br/>🔮 Future
+    participant N as Notification Service<br/>🔮 Future
     participant D as Developer
-    participant O as On-call Engineer
+    participant O as On-call Engineer<br/>🔮 Future
     
-    M->>A: Metric Threshold Exceeded
-    A->>N: Send Alert
-    N->>D: Email/Slack Notification
-    N->>O: PagerDuty Alert
-    D->>M: Check Metrics
-    O->>M: Investigate Issue
+    M->>A: Metric Threshold Exceeded<br/>🔮 Future
+    A->>N: Send Alert<br/>🔮 Future
+    N->>D: Email/Slack Notification<br/>🔮 Future
+    N->>O: PagerDuty Alert<br/>🔮 Future
+    D->>M: Check Metrics<br/>🔮 Future
+    O->>M: Investigate Issue<br/>🔮 Future
 ```
 
 ## Score Update Flow
@@ -367,6 +391,8 @@ sequenceDiagram
     F->>U: Show updated score
 ```
 
+> **Current Implementation**: This flow shows the actual score update process with JWT authentication, action hash verification, and real-time WebSocket broadcasting.
+
 ## Authentication Flow
 
 ```mermaid
@@ -395,6 +421,8 @@ sequenceDiagram
     F->>F: Store token locally
     F->>A: Use token for protected requests
 ```
+
+> **Current Implementation**: Authentication uses JWT tokens with bcrypt password hashing and Prisma ORM for database operations.
 
 ## Security Validation Flow
 
@@ -436,6 +464,8 @@ sequenceDiagram
     A->>W: Remove Connection
     W->>M: Delete from Map
 ```
+
+> **Current Implementation**: WebSocket connections are managed by a custom WebSocketService with connection tracking and real-time broadcasting capabilities.
 
 ## Real-time Update Flow
 
@@ -500,3 +530,5 @@ sequenceDiagram
     SC-->>A: Success Response
     A-->>A: Return to client
 ```
+
+> **Current Implementation**: Database operations use Prisma ORM with transaction support, cache invalidation, and real-time WebSocket broadcasting.
